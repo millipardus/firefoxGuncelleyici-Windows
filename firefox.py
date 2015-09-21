@@ -2,7 +2,7 @@
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtCore import qInstallMessageHandler
+from PyQt5.QtCore import qInstallMessageHandler, QSize
 
 from PyQt5.QtCore import *
 
@@ -46,6 +46,7 @@ class FirefoxGuncelleyici (QWidget):
 		self.ayarAyracı = configparser.ConfigParser()
 		
 		self.resize(300, 70)
+		self.ortala(self)
 		self.setWindowTitle("Firefox Güncelleyici")
 		self.setWindowIcon(QIcon(os.path.join("kaynaklar", "pencere_firefox_güncelle.png")))
 		
@@ -63,11 +64,16 @@ class FirefoxGuncelleyici (QWidget):
 		
 		
 		self.firefoxSurumu_      = QLabel("Firefox Sürümü: "+self.firefoxSurumu, self)
+		#label.fontMetrics().boundingRect(label.text()).width()
+		self.firefoxSurumu_.setMaximumWidth(self.firefoxSurumu_.fontMetrics().boundingRect(self.firefoxSurumu_.text()).width()+1)
+		self.firefoxSurumYenile  = QLabel("| <a href='#'>Yenile</a>", self)
+		self.firefoxSurumYenile.linkActivated.connect(self.SurumYenile)
 		self.firefoxDiziniEtiket = QLabel("Firefox Dizini: " + self.firefoxDizini, self)
 		self.firefoxSonSürümü    = QLabel("Firefox Son Sürümü: ", self)
 		self.firefoxSurumSecimi  = QComboBox(self)
 		#self.firefoxSurumSecimi.addItems(self.firefoxunTumSurumleri.keys())
-		self.SeçilenSurumuİndir = QPushButton("Seçilen Sürümü Kur", self)
+		self.SeçilenSurumuİndir = QPushButton("Kur", self)
+		self.SeçilenSurumuİndir.setMaximumWidth(75)
 		self.SeçilenSurumuİndir.setIcon(QIcon(self.resim3))
 		self.SeçilenSurumuİndir.clicked.connect(self.SecilenSurumKur)
 		
@@ -77,11 +83,16 @@ class FirefoxGuncelleyici (QWidget):
 		self.alt_gorunum = QHBoxLayout(self)
 		self.alt_gorunum.addWidget(self.firefoxSurumSecimi)
 		self.alt_gorunum.addWidget(self.SeçilenSurumuİndir)		
+		
+		self.alt_gorunum2 = QHBoxLayout(self)
+		self.alt_gorunum2.addWidget(self.firefoxSurumu_)
+		self.alt_gorunum2.addWidget(self.firefoxSurumYenile)
+		
 		#self.setLayout(self.gorunum)
 
 		self.gorunum.addWidget(self.guncellemeDugmesi)
 		self.gorunum.addWidget(self.firefoxSonSürümü)
-		self.gorunum.addWidget(self.firefoxSurumu_)
+		self.gorunum.addLayout(self.alt_gorunum2)
 		self.gorunum.addWidget(self.firefoxDiziniEtiket)
 		self.gorunum.addLayout(self.alt_gorunum)
 	
@@ -91,10 +102,12 @@ class FirefoxGuncelleyici (QWidget):
 				if self.firefoxSonSurum == self.firefoxSurumu:
 					self.guncellemeDugmesi.setText("Yine De İndirmek İstiyorum !")
 					self.guncellemeDugmesi.setEnabled(True)
+					self.guncellemeDugmesi.setIcon(QIcon(self.resim3))
 			elif i == 2:
 				if self.firefoxSonSurum == self.firefoxSurumu:
 					self.guncellemeDugmesi.setText("Firefox En Yeni Sürümde !")
 					self.guncellemeDugmesi.setEnabled(False)
+					self.guncellemeDugmesi.setIcon(QIcon(self.resim2))
 		except:
 			pass
 	
@@ -182,6 +195,17 @@ class FirefoxGuncelleyici (QWidget):
 		#firefoxGüncelleyici = güncellemeİşlemleri()
 		#self.firefoxGüncelleyici.start()
 		"""
+	
+	def SurumYenile(self):
+		try:
+			self.firefoxSurumAl()
+			self.firefoxSurumu_.setText("Firefox Sürümü: "+self.firefoxSurumu)
+			self.firefoxSurumu_.setMaximumWidth(self.firefoxSurumu_.fontMetrics().boundingRect(self.firefoxSurumu_.text()).width()+1)
+			if self.firefoxSonSurum == self.firefoxSurumu:
+				self.guncellemeDugmesi.setText("Firefox En Yeni Sürümde !")
+				self.guncellemeDugmesi.setEnabled(False)
+				self.guncellemeDugmesi.setIcon(QIcon(self.resim2))
+		except: pass
 	
 	def firefoxSurumAl(self):
 		if self.firefoxDizini != "Bulunamadı":
@@ -274,48 +298,80 @@ class FirefoxGuncelleyici (QWidget):
 			self.pencere3.close()
 		elif i == 8:
 			self.pencere4.close()
+		elif i == 11:
+			self.pencereÜçÇiz("")
+		elif i == 12:
+			self.pencereİkiÇiz("")
+	
+	def ortala(self, penc):
+		a = QDesktopWidget().availableGeometry().center()
+		b = penc.frameGeometry()
+		b.moveCenter(a)
+		penc.move(b.topLeft())
 	
 	def pencereBirÇiz(self):
-		self.pencere1 = QWidget()
+		self.pencere1 = QDialog()
+		self.pencere1.setFixedSize(140, 30)
+		self.ortala(self.pencere1)
+
 		gorunum_ = QHBoxLayout(self.pencere1)
 		self.pencere1.setWindowIcon(QIcon(os.path.join("kaynaklar", "pencere_firefox_güncelle.png")))
 		self.pencere1.setWindowTitle("Firefox Güncelleniyor")
 		
 		resim = QLabel(self.pencere1)
 		resim.setPixmap(QPixmap(os.path.join("kaynaklar", "güncelle.png")))
+		
 		etk1 = QLabel("Güncelleme dosyası indiriliyor...", self.pencere1)
 		
 		gorunum_.addWidget(resim)
 		gorunum_.addWidget(etk1)
-
 		self.pencere1.show()
-	
-	def pencereİkiÇiz(self):
-		self.pencere2 = QWidget()
+	def pencereİkiÇiz(self, komut=None):
+		self.pencere2 = QDialog()
+		self.pencere2.resize(140, 30)
+		self.ortala(self.pencere2)
 		gorunum_ = QHBoxLayout(self.pencere2)
 		self.pencere2.setWindowIcon(QIcon(os.path.join("kaynaklar", "pencere_firefox_güncelle.png")))
-		self.pencere2.setWindowTitle("Firefox Güncelleniyor")
+		if komut == None:
+			self.pencere2.setWindowTitle("Firefox Güncelleniyor")
+		else:
+			self.pencere2.setWindowTitle("Dosya Zaten Var")
+
 		resim = QLabel(self.pencere2)
 		resim.setPixmap(QPixmap(os.path.join("kaynaklar", "güncelle.png")))
-		etk2 = QLabel("Güncelleme dosyası başarıyla indirildi !\nGüncelleme dosyası çalıştırılıyor...", self.pencere2)
+		if komut == None:
+			etk2 = QLabel("Güncelleme dosyası başarıyla indirildi !\nGüncelleme dosyası çalıştırılıyor...", self.pencere2)
+		else:
+			etk2 = QLabel("Aranan güncelleme dosyası zaten mevcut !\nGüncelleme dosyası çalıştırılıyor...", self.pencere2)
 		gorunum_.addWidget(resim)
 		gorunum_.addWidget(etk2)
 		self.pencere2.show()
 	
-	def pencereÜçÇiz(self):
-		self.pencere3 = QWidget()
+	def pencereÜçÇiz(self, komut=None):
+		self.pencere3 = QDialog()
+		self.pencere3.resize(140, 30)
+		self.ortala(self.pencere3)
 		gorunum_ = QHBoxLayout(self.pencere3)
 		self.pencere3.setWindowIcon(QIcon(os.path.join("kaynaklar", "pencere_firefox_güncelle.png")))
-		self.pencere3.setWindowTitle("Firefox İndiriliyor")
+		if komut== None:
+			self.pencere3.setWindowTitle("Firefox İndiriliyor")
+		else:
+			self.pencere3.setWindowTitle("Dosya Zaten Var")
 		resim = QLabel(self.pencere3)
 		resim.setPixmap(QPixmap(os.path.join("kaynaklar", "İndir.png")))
-		etk2 = QLabel("Kurulum dosyası başarıyla indirildi !\nKurulum dosyası çalıştırılıyor...", self.pencere3)
+		if komut == None:
+			etk2 = QLabel("Kurulum dosyası başarıyla indirildi !\nKurulum dosyası çalıştırılıyor...", self.pencere3)
+		else:
+			etk2 = QLabel("Aranan kurulum dosyası zaten mevcut !\nKurulum dosyası çalıştırılıyor...", self.pencere3)
 		gorunum_.addWidget(resim)
 		gorunum_.addWidget(etk2)
 		self.pencere3.show()
 	
 	def pencereDörtÇiz(self):
-		self.pencere4 = QWidget()
+		
+		self.pencere4 = QDialog()
+		self.pencere4.resize(140, 30)
+		self.ortala(self.pencere4)
 		gorunum_ = QHBoxLayout(self.pencere4)
 		self.pencere4.setWindowIcon(QIcon(os.path.join("kaynaklar", "pencere_firefox_güncelle.png")))
 		self.pencere4.setWindowTitle("Firefox İndiriliyor")
@@ -336,51 +392,40 @@ class güncellemeİşlemleri(QThread):
 		super(QThread, self).__init__(ust)
 		
 	def run(self):
-		self.bitti.emit(1)
+
 		#self.pencereBirÇiz()
 	
 		exeDosyaları = TümSürümleriÇek.dizinleriÇek("https://ftp.mozilla.org/pub/firefox/releases/latest/win32/tr/")
 		dosyaAdres = ""
 		dosyaAd = ""
-		self.bitti.emit(5)
+
 		
 		
 		for i in exeDosyaları:
 			if 'Setup' in i[1] and 'Stub' in i[1]:
 				dosyaAdres = "https://ftp.mozilla.org/pub/firefox/releases/latest/win32/tr/" + i[0]
 				dosyaAd = i[1]
-		
+
 		if dosyaAd == "":
 			for i in exeDosyaları:
 				if i[1].endswith('.exe'):
 					dosyaAdres = "https://ftp.mozilla.org/pub/firefox/releases/latest/win32/tr/" + i[0]
 					dosyaAd = i[1]
-		
-		urllib.request.urlretrieve(dosyaAdres, dosyaAd)
-		self.bitti.emit(2) #self.pencereİkiÇiz()
-		self.sleep(2)
-		self.bitti.emit(6)
-		os.startfile(dosyaAd)
-		
-		"""
-		#urllib.request.urlretrieve("https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=tr", "firefoxKurulum.exe")
-		#os.startfile("firefoxKurulum.exe")
-		
-		self.pencereİkiÇiz()
-		os.startfile(dosyaAd)
-		
-		#self.emit("1")
-		güncellemeİşlemleri.bitti.emit(1)
-		#birinciPencere = pencereBir()
-		#birinciPencere.start()
-		urllib.request.urlretrieve("https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=tr", "firefoxKurulum.exe")
-		
-		#self.emit("2")
-		güncellemeİşlemleri.bitti.emit(2)
-		#ikinciPencere = pencereİki()
-		#ikinciPencere.start()
-		os.startfile("firefoxKurulum.exe")
-		"""
+		try:
+			if not dosyaAd in os.listdir('.'):
+				self.bitti.emit(1)
+				urllib.request.urlretrieve(dosyaAdres, dosyaAd)
+				self.bitti.emit(5)
+				self.bitti.emit(2) #self.pencereİkiÇiz()
+				self.sleep(2)
+				self.bitti.emit(6)
+			else:
+				self.bitti.emit(12)
+				self.sleep(2)
+				self.bitti.emit(6)
+			
+			os.startfile(dosyaAd)
+		except: pass
 
 class Dugme(QPushButton):
 	def __init__(self, *args, **kwargs):
@@ -410,19 +455,28 @@ class seçilenSürümKur(QThread):
 		
 
 		for i in adresKod:
-			if i[1].endswith(".exe"):
+			if i[1].endswith(".exe") and not 'stub' in i[1].lower():
 				exeDosyası = i[0]
 				exeAdı = i[1]
-		#print(self.firefoxunTumSurumleri[self.seçilenSürüm]+exeDosyası, exeAdı)
-		self.sinyal.emit(4)
-		urllib.request.urlretrieve(self.firefoxunTumSurumleri[self.seçilenSürüm]+exeDosyası, exeAdı)
-		self.sinyal.emit(8)
-		self.sinyal.emit(3)
-		self.sleep(2)
-		self.sinyal.emit(7)
+
+
+		if not exeAdı in os.listdir('.'):
+			#print(self.firefoxunTumSurumleri[self.seçilenSürüm]+exeDosyası, exeAdı)
+			self.sinyal.emit(4) # firefox dosyası indiriliyor...
+			urllib.request.urlretrieve(self.firefoxunTumSurumleri[self.seçilenSürüm]+exeDosyası, exeAdı)
+			self.sinyal.emit(8) # pencereyi kapat.
+			self.sinyal.emit(3) # dosya çalıştırılıyor...
+			self.sleep(2)
+			self.sinyal.emit(7) # pencereyi kapat
+		else:
+			self.sinyal.emit(11)
+			self.sleep(2)
+			self.sinyal.emit(7)
 		try:
 			os.startfile(exeAdı)
 		except: pass
+			
+			
 		#self.sinyal2.emit(exeAdı)
 				
 class SürümleriGetir(QThread):
@@ -474,6 +528,15 @@ class pencereİki(QThread):
 		etk2 = QLabel("<img src='güncelle.png' />Güncelleme dosyası başarıyla indirildi !\nGüncelleme dosyası çalıştırılıyor...", self.pencere2)
 		self.pencere2.show()			
 """	
+
+class QEtiket(QLabel):
+	def __init__(self, *args, **kwargs):
+		super(QLabel, self).__init__(*args, **kwargs)
+	
+	sn = pyqtSignal(int)
+	def mousePressEvent(self, QEvent):
+		self.sn.emit(10)
+		
 
 def denetle(*args, **kwargs):
 	pass
